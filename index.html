@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CI/CD — Apresentação</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --surface: #111420;
+      --border: #1e2a3a;
+      --accent: #00e5ff;
+      --accent2: #7b2fff;
+      --green: #00ff88;
+      --red: #ff3b5c;
+      --yellow: #ffd166;
+      --text: #e0eaf8;
+      --muted: #5a6a82;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 80px 10vw;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      letter-spacing: .18em;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp .6s .2s forwards;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.02em;
+      max-width: 800px;
+      opacity: 0;
+      animation: fadeUp .7s .4s forwards;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      margin-top: 24px;
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeUp .7s .6s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 40px;
+      display: flex; gap: 16px; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .7s .8s forwards;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: .85rem;
+      letter-spacing: .1em;
+      padding: 12px 28px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 24px rgba(0,229,255,.35);
+    }
+    .btn-primary:hover { box-shadow: 0 0 40px rgba(0,229,255,.6); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .pipeline-section {
+      padding: 80px 10vw;
+      position: relative; z-index: 1;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      margin-bottom: 48px;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .stage {
+      flex: 1;
+      min-width: 140px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-right: none;
+      padding: 28px 20px;
+      position: relative;
+      transition: background .2s;
+      cursor: default;
+    }
+    .stage:last-child { border-right: 1px solid var(--border); border-radius: 0 6px 6px 0; }
+    .stage:first-child { border-radius: 6px 0 0 6px; }
+    .stage:hover { background: #161c2c; }
+
+    .stage:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -12px; top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      border-left: 12px solid var(--border);
+      z-index: 2;
+    }
+
+    .stage-icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .stage-name {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .stage-desc { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+    .stage-status {
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      padding: 3px 8px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .status-pass { background: rgba(0,255,136,.1); color: var(--green); border: 1px solid rgba(0,255,136,.3); }
+    .status-run  { background: rgba(255,209,102,.1); color: var(--yellow); border: 1px solid rgba(255,209,102,.3); animation: blink 1.2s infinite; }
+    .status-wait { background: rgba(90,106,130,.1); color: var(--muted); border: 1px solid rgba(90,106,130,.25); }
+
+    .concepts-section {
+      padding: 80px 10vw;
+      position: relative; z-index: 1;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+    .card-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .card-text { font-size: .85rem; color: var(--muted); line-height: 1.65; }
+
+    .terminal-section {
+      padding: 60px 10vw;
+      position: relative; z-index: 1;
+    }
+
+    .terminal {
+      background: #080b10;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      max-width: 760px;
+    }
+
+    .terminal-bar {
+      background: #111420;
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #ff3b5c; }
+    .dot-y { background: #ffd166; }
+    .dot-g { background: #00ff88; }
+    .terminal-title { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); margin-left: 8px; }
+
+    .terminal-body { padding: 24px 24px; font-family: var(--font-mono); font-size: .82rem; line-height: 2; }
+
+    .line-prompt { color: var(--accent); }
+    .line-cmd    { color: var(--text); }
+    .line-out    { color: var(--muted); }
+    .line-ok     { color: var(--green); }
+    .line-err    { color: var(--red); }
+    .line-warn   { color: var(--yellow); }
+
+    footer {
+      padding: 32px 10vw;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--muted);
+      position: relative; z-index: 1;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .4; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">// DevOps · Automação · Entrega Contínua</div>
+    <h1>O que é<br/><span>CI/CD?</span></h1>
+    <p class="hero-sub">
+      Integração Contínua e Entrega Contínua são práticas que automatizam o ciclo de desenvolvimento — do commit ao deploy — com velocidade, segurança e confiança.
+    </p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="scrollTo('.pipeline-section')">Ver Pipeline →</button>
+      <button class="btn btn-outline" onclick="scrollTo('.terminal-section')">Ver Terminal</button>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section class="pipeline-section">
+    <div class="section-label">// fluxo</div>
+    <h2 class="section-title">Pipeline de Entrega</h2>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="stage-icon">📝</div>
+        <div class="stage-name">Commit</div>
+        <div class="stage-desc">Dev envia código para o repositório (Git)</div>
+        <span class="stage-status status-pass">✓ passed</span>
+      </div>
+      <div class="stage">
+        <div class="stage-icon">🔍</div>
+        <div class="stage-name">Build</div>
+        <div class="stage-desc">Compilação e análise de dependências</div>
+        <span class="stage-status status-pass">✓ passed</span>
+      </div>
+      <div class="stage">
+        <div class="stage-icon">🧪</div>
+        <div class="stage-name">Testes</div>
+        <div class="stage-desc">Unit, integração e testes e2e automatizados</div>
+        <span class="stage-status status-run">⟳ running</span>
+      </div>
+      <div class="stage">
+        <div class="stage-icon">🔒</div>
+        <div class="stage-name">Segurança</div>
+        <div class="stage-desc">SAST, DAST e varredura de vulnerabilidades</div>
+        <span class="stage-status status-wait">– pending</span>
+      </div>
+      <div class="stage">
+        <div class="stage-icon">📦</div>
+        <div class="stage-name">Artefato</div>
+        <div class="stage-desc">Docker image ou pacote pronto para deploy</div>
+        <span class="stage-status status-wait">– pending</span>
+      </div>
+      <div class="stage">
+        <div class="stage-icon">🚀</div>
+        <div class="stage-name">Deploy</div>
+        <div class="stage-desc">Push automático para staging / produção</div>
+        <span class="stage-status status-wait">– pending</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPTS -->
+  <section class="concepts-section">
+    <div class="section-label">// conceitos</div>
+    <h2 class="section-title">Fundamentos Essenciais</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">🔁</div>
+        <div class="card-title">Integração Contínua (CI)</div>
+        <div class="card-text">Merge frequente de código no repositório principal. Builds e testes automáticos detectam erros cedo.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📤</div>
+        <div class="card-title">Entrega Contínua (CD)</div>
+        <div class="card-text">Software sempre pronto para deploy em produção após passar por todos os estágios do pipeline.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Deploy Contínuo</div>
+        <div class="card-text">Toda mudança que passa nos testes vai direto para produção — sem aprovação manual.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🐳</div>
+        <div class="card-title">Containers</div>
+        <div class="card-text">Docker e Kubernetes garantem ambientes consistentes e isolados do dev até a prod.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧬</div>
+        <div class="card-title">Infrastructure as Code</div>
+        <div class="card-text">Infraestrutura definida em código (Terraform, Ansible) versionada junto com a aplicação.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Observabilidade</div>
+        <div class="card-text">Logs, métricas e rastreamento distribuído para monitorar saúde do sistema em tempo real.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TERMINAL -->
+  <section class="terminal-section">
+    <div class="section-label">// exemplo</div>
+    <h2 class="section-title" style="margin-bottom:32px">Pipeline em Ação</h2>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="terminal-title">github-actions / ci-pipeline.yml</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="line-prompt">$</span> <span class="line-cmd">git push origin main</span></div>
+        <div class="line-out">→ Trigger: push event on main</div>
+        <div class="line-out">→ Runner: ubuntu-22.04</div>
+        <br/>
+        <div><span class="line-prompt">$</span> <span class="line-cmd">npm ci</span></div>
+        <div class="line-ok">✓ Dependencies installed (1.2s)</div>
+        <br/>
+        <div><span class="line-prompt">$</span> <span class="line-cmd">npm run lint</span></div>
+        <div class="line-ok">✓ Lint passed — 0 errors, 0 warnings</div>
+        <br/>
+        <div><span class="line-prompt">$</span> <span class="line-cmd">npm test -- --coverage</span></div>
+        <div class="line-ok">✓ 24 tests passed</div>
+        <div class="line-warn">⚠ Coverage: 87% (threshold: 80%)</div>
+        <br/>
+        <div><span class="line-prompt">$</span> <span class="line-cmd">docker build -t myapp:v1.4.2 .</span></div>
+        <div class="line-ok">✓ Image built & pushed to registry</div>
+        <br/>
+        <div><span class="line-prompt">$</span> <span class="line-cmd">kubectl rollout deploy/myapp</span></div>
+        <div class="line-ok">✓ Deployment successful → staging</div>
+        <div class="line-out">→ URL: https://staging.myapp.dev</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>CI/CD — Apresentação Técnica</span>
+    <span>commit: <span style="color:var(--accent)">a3f9c12</span> · branch: main · status: <span style="color:var(--green)">passing</span></span>
+  </footer>
+
+  <script>
+    function scrollTo(selector) {
+      document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          e.target.style.animation = `fadeUp .6s ${i * 0.08}s forwards`;
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.card, .stage').forEach(el => {
+      el.style.opacity = '0';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
